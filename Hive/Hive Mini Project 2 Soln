@@ -18,41 +18,485 @@ The analysis can be divided into two parts:
 Part-I: Examine the data
 
 1) Find the total number of tickets for the year.
-->
+->hive> select issue_date,count(*) from violation_main group by issue_date;
+
+But we need the data for 2017 only
+Sol let’s modify this and create a temp table with data of year 2017 only
+hive> create table parking_vio_2017
+    > (
+    > summons_no int,
+    > plate_id string,
+    > registration_state string,
+    > plate_type string,
+    > issue_date date,
+    > violation_code int,
+    > vehicle_body_type string,
+    > vehicle_make string,
+    > issuing_agency string,
+    > street_code_1 int,
+    > street_code_2 int,
+    > street_code_3 int,
+    > vehicle_exp_date int,
+    > violation_location int,
+    > violation_precinct int,
+    > issuer_precinct int,
+    > issuer_code int,
+    > issuer_command string,
+    > issuer_squad string,
+    > violation_time string,
+    > time_first_observed string,
+    > violation_county string,
+    > violation_in_front_of_or_opp string,
+    > house_no string,
+    > street_no string,
+    > intersection_street string,
+    > date_first_observed string,
+    > law_section int,
+    > sub_division string,
+    > violation_legal_code string,
+    > days_parking_in_effect string,
+    > from_hours_in_effect string,
+    > to_hours_in_effect string,
+    > vehicle_color string,
+    > unregistered_vehicle int,
+    > vehicle_year string,
+    > meter_no string,
+    > feet_from_curb string,
+    > violation_post_code string,
+    > violation_description string,
+    > no_standing_or_stopping_violation string,
+    > hydrant_violation string,
+    > double_parking_violation string
+    > )
+    > row format delimited
+    > fields terminated by ',';
+
+
+hive> insert into parking_vio_2017 select summons_no,plate_id,registration_state,plate_type,issue_date,violation_code,vehicle_body_type,
+vehicle_make,issuing_agency,street_code_1,street_code_2,street_code_3,vehicle_exp_date,violation_location,violation_precinct,
+issuer_precinct,issuer_code,issuer_command,issuer_squad,violation_time,time_first_observed,violation_county,
+violation_in_front_of_or_opp,house_no,street_no,intersection_street,date_first_observed,law_section,sub_division,violation_legal_code,
+days_parking_in_effect,from_hours_in_effect,to_hours_in_effect,vehicle_color,unregistered_vehicle,vehicle_year,meter_no,feet_from_curb,
+violation_post_code,violation_description,no_standing_or_stopping_violation,hydrant_violation,
+double_parking_violation from violation_main where year(issue_date)=2017;
+
+Let’s check if data in loaded in the hdfs warehouse
+->hadoop fs -ls /user/hive/warehouse/hive_db.db/parking_vio_2017
+
 
 
 2.) Find out how many unique states the cars which got parking tickets came from.
-->
+-> hive> select distinct registration_state from violation_main;
+
+hive> select registration_state,count(*) as instance from parking_vio_2017 group by registration_state order by instance desc;
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
+Query ID = root_20230408120319_8c69e2b9-a0d2-4432-a51e-74cc7f583b36
+Total jobs = 2
+Launching Job 1 out of 2
+Number of reduce tasks not specified. Estimated from input data size: 4
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2023-04-08 12:03:23,028 Stage-1 map = 0%,  reduce = 0%
+2023-04-08 12:03:27,707 Stage-1 map = 100%,  reduce = 0%
+2023-04-08 12:03:37,722 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_local1615623838_0004
+Launching Job 2 out of 2
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2023-04-08 12:03:39,869 Stage-2 map = 100%,  reduce = 100%
+Ended Job = job_local1643808020_0005
+MapReduce Jobs Launched:
+Stage-Stage-1:  HDFS Read: 55123329229 HDFS Write: 8116602392 SUCCESS
+Stage-Stage-2:  HDFS Read: 14141225856 HDFS Write: 2029150598 SUCCESS
+Total MapReduce CPU Time Spent: 0 msec
+OK
+registration_state      instance
+NY      4273941
+NJ      475824
+PA      140284
+CT      70403
+FL      69468
+IN      45525
+MA      38941
+VA      34367
+MD      30213
+NC      27152
+TX      18827
+IL      18666
+GA      17537
+99      16055
+AZ      12379
+OH      12281
+CA      12152
+ME      10806
+SC      10394
+MN      10083
+OK      9088
+TN      8514
+DE      7905
+MI      7231
+RI      5814
+NH      4119
+VT      3683
+AL      3178
+WA      3052
+OR      2622
+MO      2483
+ON      2460
+WI      2127
+QB      1998
+IA      1938
+DC      1929
+CO      1841
+KY      1795
+DP      1794
+LA      1689
+MS      1582
+WV      1265
+AR      994
+SD      859
+NM      792
+ID      763
+NV      725
+KS      706
+NE      704
+UT      561
+MT      505
+GV      348
+NS      322
+AK      298
+ND      254
+WY      188
+HI      156
+AB      79
+PE      61
+NB      57
+BC      54
+PR      38
+MB      17
+SK      9
+FO      8
+Time taken: 20.127 seconds, Fetched: 65 row(s)
+
+
+
 
 
 3) Some parking tickets don’t have addresses on them, which is cause for concern. Find out how many such tickets there are
 (i.e. tickets where either "Street Code 1" or "Street Code 2" or "Street Code 3" is empty )
 ->
+hive> select count(*) from parking_vio_2017 where street_code_1 is null or street_code_2 is null or street_code_3 is null or street_code_1=0 or street_code_2=0 or street_code_3=0;
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
+Query ID = root_20230408122406_546bfba9-608e-49bb-b6cc-c6ce23ab817d
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2023-04-08 12:24:08,395 Stage-1 map = 0%,  reduce = 0%
+2023-04-08 12:24:11,784 Stage-1 map = 100%,  reduce = 0%
+2023-04-08 12:24:18,791 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_local1069774194_0007
+MapReduce Jobs Launched:
+Stage-Stage-1:  HDFS Read: 44057236165 HDFS Write: 5072876495 SUCCESS
+Total MapReduce CPU Time Spent: 0 msec
+OK
+_c0
+1816816
+Time taken: 12.794 seconds, Fetched: 1 row(s)
+
+
+
+
 
 
 
 Part-II: Aggregation tasks
 
 1) How often does each violation code occur? (frequency of violation codes - find the top 5)
-->
+->hive> select violation_code,count(*) as instance from parking_vio_2017 group by violation_code order by instance desc limit 5;
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
+Query ID = root_20230408123022_9378794a-2f09-4e0b-9bad-3113d0113f09
+Total jobs = 2
+Launching Job 1 out of 2
+Number of reduce tasks not specified. Estimated from input data size: 4
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2023-04-08 12:30:31,657 Stage-1 map = 0%,  reduce = 0%
+2023-04-08 12:30:40,682 Stage-1 map = 100%,  reduce = 0%
+2023-04-08 12:30:46,688 Stage-1 map = 33%,  reduce = 0%
+2023-04-08 12:30:48,710 Stage-1 map = 100%,  reduce = 0%
+2023-04-08 12:30:58,737 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_local488446953_0008
+Launching Job 2 out of 2
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2023-04-08 12:31:01,739 Stage-2 map = 100%,  reduce = 100%
+Ended Job = job_local1353223834_0009
+MapReduce Jobs Launched:
+Stage-Stage-1:  HDFS Read: 79473118957 HDFS Write: 8116602392 SUCCESS
+Stage-Stage-2:  HDFS Read: 20228673288 HDFS Write: 2029150598 SUCCESS
+Total MapReduce CPU Time Spent: 0 msec
+OK
+violation_code  instance
+21      768082
+36      662765
+38      542079
+14      476660
+20      319646
+
+
 
 
 2) How often does each vehicle body type get a parking ticket? How about the vehicle make? (find the top 5 for both)
 ->
+For Vehicle body type
+hive> select vehicle_body_type,count(*) as instance from parking_vio_2017 group by vehicle_body_type order by instance desc limit 5;
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
+Query ID = root_20230408123551_a96f78b5-6b0a-4fae-8fd6-54ec188a7fc3
+Total jobs = 2
+Launching Job 1 out of 2
+Number of reduce tasks not specified. Estimated from input data size: 4
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2023-04-08 12:35:54,477 Stage-1 map = 0%,  reduce = 0%
+2023-04-08 12:36:00,484 Stage-1 map = 8%,  reduce = 0%
+2023-04-08 12:36:03,487 Stage-1 map = 100%,  reduce = 0%
+2023-04-08 12:36:09,497 Stage-1 map = 25%,  reduce = 0%
+2023-04-08 12:36:12,502 Stage-1 map = 100%,  reduce = 0%
+2023-04-08 12:36:17,508 Stage-1 map = 75%,  reduce = 0%
+2023-04-08 12:36:18,509 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_local198719902_0010
+Launching Job 2 out of 2
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2023-04-08 12:36:20,251 Stage-2 map = 100%,  reduce = 100%
+Ended Job = job_local457352855_0011
+MapReduce Jobs Launched:
+Stage-Stage-1:  HDFS Read: 87589715533 HDFS Write: 8116602392 SUCCESS
+Stage-Stage-2:  HDFS Read: 22257822432 HDFS Write: 2029150598 SUCCESS
+Total MapReduce CPU Time Spent: 0 msec
+OK
+vehicle_body_type       instance
+SUBN    1883953
+4DSD    1547307
+VAN     724025
+DELV    358982
+SDN     194197
+
+
+For vehicle make
+
+hive> select vehicle_make,count(*) as instance from parking_vio_2017 group by vehicle_make order by instance desc limit 5;
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
+Query ID = root_20230408123750_9647cd58-0775-4c05-af32-27742608aed6
+Total jobs = 2
+Launching Job 1 out of 2
+Number of reduce tasks not specified. Estimated from input data size: 4
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2023-04-08 12:37:54,203 Stage-1 map = 0%,  reduce = 0%
+2023-04-08 12:37:56,206 Stage-1 map = 100%,  reduce = 0%
+2023-04-08 12:38:03,214 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_local1454523152_0012
+Launching Job 2 out of 2
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2023-04-08 12:38:05,257 Stage-2 map = 100%,  reduce = 100%
+Ended Job = job_local1060513731_0013
+MapReduce Jobs Launched:
+Stage-Stage-1:  HDFS Read: 95706312109 HDFS Write: 8116602392 SUCCESS
+Stage-Stage-2:  HDFS Read: 24286971576 HDFS Write: 2029150598 SUCCESS
+Total MapReduce CPU Time Spent: 0 msec
+OK
+vehicle_make    instance
+FORD    636842
+TOYOT   605290
+HONDA   538884
+NISSA   462017
+CHEVR   356032
 
 
 3) A precinct is a police station that has a certain zone of the city under its command. Find the (5 highest) frequencies of:
-      a.) Violating Precincts (this is the precinct of the zone where the violation occurred)
-      ->
+a.) Violating Precincts (this is the precinct of the zone where the violation occurred)
+->hive> select violation_precinct,count(*) as instances from parking_vio_2017 group by violation_precinct order by instances desc limit 5;
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
+Query ID = root_20230408124537_11dc8925-f0f4-4397-8eee-b5be88d363f3
+Total jobs = 2
+Launching Job 1 out of 2
+Number of reduce tasks not specified. Estimated from input data size: 4
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2023-04-08 12:45:40,763 Stage-1 map = 0%,  reduce = 0%
+2023-04-08 12:45:43,765 Stage-1 map = 100%,  reduce = 0%
+2023-04-08 12:45:49,771 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_local1258832131_0014
+Launching Job 2 out of 2
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2023-04-08 12:45:51,660 Stage-2 map = 100%,  reduce = 100%
+Ended Job = job_local1685272680_0015
+MapReduce Jobs Launched:
+Stage-Stage-1:  HDFS Read: 103822908685 HDFS Write: 8116602392 SUCCESS
+Stage-Stage-2:  HDFS Read: 26316120720 HDFS Write: 2029150598 SUCCESS
+Total MapReduce CPU Time Spent: 0 msec
+OK
+violation_precinct      instances
+0       925596
+19      274443
+14      203552
+1       174702
+18      169131
 
 
-      b.) Issuer Precincts (this is the precinct that issued the ticket)
-      ->
+b.) Issuer Precincts (this is the precinct that issued the ticket)
+->hive> select issuer_precinct,count(*) as instances from parking_vio_2017 group by issuer_precinct order by instances desc limit 5;
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
+Query ID = root_20230408124648_200df340-8b5c-4e61-9eb4-5a864c9ab815
+Total jobs = 2
+Launching Job 1 out of 2
+Number of reduce tasks not specified. Estimated from input data size: 4
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2023-04-08 12:46:50,404 Stage-1 map = 0%,  reduce = 0%
+2023-04-08 12:46:52,406 Stage-1 map = 100%,  reduce = 0%
+2023-04-08 12:46:58,414 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_local523335232_0016
+Launching Job 2 out of 2
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2023-04-08 12:47:00,186 Stage-2 map = 100%,  reduce = 100%
+Ended Job = job_local1790657867_0017
+MapReduce Jobs Launched:
+Stage-Stage-1:  HDFS Read: 111939505261 HDFS Write: 8116602392 SUCCESS
+Stage-Stage-2:  HDFS Read: 28345269864 HDFS Write: 2029150598 SUCCESS
+Total MapReduce CPU Time Spent: 0 msec
+OK
+issuer_precinct instances
+0       1078403
+19      266959
+14      200494
+1       168740
+18      162994
+
+
 
 
 4) Find the violation code frequency across 3 precincts which have issued the most number of tickets - 
     do these precinct zones have an exceptionally high frequency of certain violation codes?
-->
+->hive> select issuer_precinct,violation_code,count() as instance from parking_vio_2017 group by issuer_precinct,violation_code order by issuer_precinct,instance desc;
+
+hive> select issuer_precinct,count() as instance from parking_vio_2017 where issuer_precinct!=0 group by issuer_precinct,violation_code order by instance desc limit 3;
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
+Query ID = root_20230408131017_0062681a-3eaa-4524-8013-469a72d4e365
+Total jobs = 2
+Launching Job 1 out of 2
+Number of reduce tasks not specified. Estimated from input data size: 4
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2023-04-08 13:10:20,140 Stage-1 map = 0%,  reduce = 0%
+2023-04-08 13:10:22,142 Stage-1 map = 100%,  reduce = 0%
+2023-04-08 13:10:28,147 Stage-1 map = 75%,  reduce = 0%
+2023-04-08 13:10:29,150 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_local1999220878_0027
+Launching Job 2 out of 2
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2023-04-08 13:10:30,934 Stage-2 map = 100%,  reduce = 100%
+Ended Job = job_local1703760097_0028
+MapReduce Jobs Launched:
+Stage-Stage-1:  HDFS Read: 160639084717 HDFS Write: 8116602392 SUCCESS
+Stage-Stage-2:  HDFS Read: 40520164728 HDFS Write: 2029150598 SUCCESS
+Total MapReduce CPU Time Spent: 0 msec
+OK
+issuer_precinct instance
+18      50150
+19      48444
+14      45036
+
+
 
 
 5) Find out the properties of parking violations across different times of the day: The Violation Time field is specified in 
@@ -60,28 +504,314 @@ a strange format. Find a way to make this into a time attribute that you can use
 ->
 
 
+
+
 6) Divide 24 hours into 6 equal discrete bins of time. The intervals you choose are at your discretion. For each of these groups, 
 find the 3 most commonly occurring violations
-->
+->select summons_no, violation_code , violation_time, issuer_precinct,
+case
+when substring(violation_time,1,2) in ('00','01','02','03','12')
+and upper(substring(violation_time,-1))='A' then 1
+when substring(violation_time,1,2) in ('04','05','06','07')
+and upper(substring(violation_time,-1))='A' then 2
+when substring(violation_time,1,2) in ('08','09','10','11')
+and upper(substring(violation_time,-1))='A' then 3
+when substring(violation_time,1,2) in ('12','00','01','02','03')
+and upper(substring(violation_time,-1))='P' then 4
+when substring(violation_time,1,2) in ('04','05','06','07')
+and upper(substring(violation_time,-1))='P' then 5
+when substring(violation_time,1,2) in ('08','09','10','11')
+and upper(substring(violation_time,-1))='P' then 6
+else null
+end as violation_time_bin
+from parking_vio_2017 where violation_time is not null
+or
+(
+length(violation_time)=5 and upper(substring(violation_time,-1)) in ('A','P') and substring(violation_time,1,2) in ('00','01','02','03','04','05','06','07', '08','09','10','11','12')
+)
+
+Now Let’s find 3 most commonly occurring violations
+
+For violation_time_bin=1
+
+with bin_table as (
+select summons_no, violation_code , violation_time, issuer_precinct,
+case
+when substring(violation_time,1,2) in ('00','01','02','03','12')
+and upper(substring(violation_time,-1))='A' then 1
+when substring(violation_time,1,2) in ('04','05','06','07')
+and upper(substring(violation_time,-1))='A' then 2
+when substring(violation_time,1,2) in ('08','09','10','11')
+and upper(substring(violation_time,-1))='A' then 3
+when substring(violation_time,1,2) in ('12','00','01','02','03')
+and upper(substring(violation_time,-1))='P' then 4
+when substring(violation_time,1,2) in ('04','05','06','07')
+and upper(substring(violation_time,-1))='P' then 5
+when substring(violation_time,1,2) in ('08','09','10','11')
+and upper(substring(violation_time,-1))='P' then 6
+else null
+end as violation_time_bin
+from parking_vio_2017 where violation_time is not null
+or
+(
+length(violation_time)=5 and upper(substring(violation_time,-1)) in ('A','P') and substring(violation_time,1,2) in ('00','01','02','03','04','05','06','07', '08','09','10','11','12')
+)
+)
+
+select violation_time_bin,violation_code,count(*) as instance from bin_table
+where violation_time_bin=1
+group by violation_time_bin,violation_code
+order by instance desc
+limit 3
+
+violation_time_bin      violation_code  instance
+1       21      36957
+1       40      25866
+1       78      15528
+Time taken: 16.955 seconds, Fetched: 3 row(s)
+hive>
+
+Similarly trying for violation_time_bin for 2,3,4,5,6
+
+Three most commonly violation_codes are
+21,36,38
+
+
 
 
 7) Now, try another direction. For the 3 most commonly occurring violation codes, find the most common times of day 
 (in terms of the bins from the previous part)
-->
+->with bin_table as (
+select summons_no, violation_code , violation_time, issuer_precinct,
+case
+when substring(violation_time,1,2) in ('00','01','02','03','12')
+and upper(substring(violation_time,-1))='A' then 1
+when substring(violation_time,1,2) in ('04','05','06','07')
+and upper(substring(violation_time,-1))='A' then 2
+when substring(violation_time,1,2) in ('08','09','10','11')
+and upper(substring(violation_time,-1))='A' then 3
+when substring(violation_time,1,2) in ('12','00','01','02','03')
+and upper(substring(violation_time,-1))='P' then 4
+when substring(violation_time,1,2) in ('04','05','06','07')
+and upper(substring(violation_time,-1))='P' then 5
+when substring(violation_time,1,2) in ('08','09','10','11')
+and upper(substring(violation_time,-1))='P' then 6
+else null
+end as violation_time_bin
+from parking_vio_2017 where violation_time is not null
+or
+(
+length(violation_time)=5 and upper(substring(violation_time,-1)) in ('A','P') and substring(violation_time,1,2) in ('00','01','02','03','04','05','06','07', '08','09','10','11','12')
+)
+)
+
+select violation_time_bin,count(*) as instance from bin_table
+where violation_code in (21,36,38)
+group by violation_time_bin
+order by instance desc
+limit 3
+
+violation_time_bin      instance
+3       1122795
+4       601699
+5       116648
+Time taken: 16.351 seconds, Fetched: 3 row(s)
+
 
 
 8) Let’s try and find some seasonality in this data
-      a.) First, divide the year into some number of seasons, and find frequencies of tickets for each season. 
-      (Hint: A quick Google search reveals the following seasons in NYC: Spring(March, April, March); 
-      Summer(June, July, August); Fall(September, October, November); Winter(December, January, February))
-      ->
+a.) First, divide the year into some number of seasons, and find frequencies of tickets for each season. 
+(Hint: A quick Google search reveals the following seasons in NYC: Spring(March, April, March); 
+Summer(June, July, August); Fall(September, October, November); Winter(December, January, February))
+b.)Then, find the 3 most common violations for each of these seasons.
+->
+with season_data as (
+select case when month(issue_date) in (1,2,12) then 'winter' when month(issue_date) in (3,4,5) then 'spring' when month(issue_date) in (6,7,8) then 'summer' else 'fall' end as season,violation_code,count() as instances
+from parking_vio_2017
+group by case when month(issue_date) in (1,2,12) then 'winter' when month(issue_date) in (3,4,5) then 'spring' when month(issue_date) in (6,7,8) then 'summer' else 'fall' end,violation_code
+)
+select from (
+select season,violation_code,instances,dense_rank() over (partition by season,violation_code order by instances desc) as rank
+from season_data
+)b
 
 
+b.season        b.violation_code        b.instances     b.rank
+fall    46      231     1
+fall    21      128     2
+fall    40      116     3
+spring  21      402424  1
+spring  36      344834  2
+spring  38      271167  3
+summer  21      127350  1
+summer  36      96663   2
+summer  38      83518   3
+winter  21      238180  1
+winter  36      221268  2
+winter  38      187386  3
+Time taken: 13.933 seconds, Fetched: 12 row(s)
+hive>
 
-      b.)Then, find the 3 most common violations for each of these seasons.
-      ->
+Now let’s solve all above questions with some optimization techniques
+Hive is better for orc type format So create an orc table with dynamic partition on issue_date,violation_code and bucketing on summons_no
+
+Step 1
+Lets create an orc table named parking_vio_2017_orc from reference table parking_vio_2017
+hive> create table parking_vio_2017_orc
+    > (
+    > summons_no int,
+    > plate_id string,
+    > registration_state string,
+    > plate_type string,
+    > issue_date date,
+    > violation_code int,
+    > vehicle_body_type string,
+    > vehicle_make string,
+    > issuing_agency string,
+    > street_code_1 int,
+    > street_code_2 int,
+    > street_code_3 int,
+    > vehicle_exp_date int,
+    > violation_location int,
+    > violation_precinct int,
+    > issuer_precinct int,
+    > issuer_code int,
+    > issuer_command string,
+    > issuer_squad string,
+    > violation_time string,
+    > time_first_observed string,
+    > violation_county string,
+    > violation_in_front_of_or_opp string,
+    > house_no string,
+    > street_no string,
+    > intersection_street string,
+    > date_first_observed string,
+    > law_section int,
+    > sub_division string,
+    > violation_legal_code string,
+    > days_parking_in_effect string,
+    > from_hours_in_effect string,
+    > to_hours_in_effect string,
+    > vehicle_color string,
+    > unregistered_vehicle int,
+    > vehicle_year string,
+    > meter_no string,
+    > feet_from_curb string,
+    > violation_post_code string,
+    > violation_description string,
+    > no_standing_or_stopping_violation string,
+    > hydrant_violation string,
+    > double_parking_violation string
+    > )
+    > stored as orc;
+OK
+Time taken: 6.189 seconds
+hive>
+
+Lets load data into this orc table from the ref table named parking_vio_2017
+
+hive> from parking_vio_2017 insert overwrite table parking_vio_2017_orc select *;
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
+Query ID = root_20230408183337_5e13629f-b635-4151-8dc9-5e1decd2870c
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks is set to 0 since there's no reduce operator
+Job running in-process (local Hadoop)
+2023-04-08 18:33:40,787 Stage-1 map = 0%,  reduce = 0%
+2023-04-08 18:33:58,800 Stage-1 map = 12%,  reduce = 0%
+2023-04-08 18:34:11,817 Stage-1 map = 100%,  reduce = 0%
+2023-04-08 18:34:17,822 Stage-1 map = 25%,  reduce = 0%
+2023-04-08 18:34:26,828 Stage-1 map = 37%,  reduce = 0%
+2023-04-08 18:34:40,838 Stage-1 map = 100%,  reduce = 0%
+2023-04-08 18:34:46,844 Stage-1 map = 50%,  reduce = 0%
+2023-04-08 18:34:54,851 Stage-1 map = 62%,  reduce = 0%
+2023-04-08 18:35:08,870 Stage-1 map = 100%,  reduce = 0%
+2023-04-08 18:35:14,874 Stage-1 map = 75%,  reduce = 0%
+2023-04-08 18:35:23,948 Stage-1 map = 91%,  reduce = 0%
+2023-04-08 18:35:29,952 Stage-1 map = 100%,  reduce = 0%
+Ended Job = job_local1833751516_0015
+Stage-4 is selected by condition resolver.
+Stage-3 is filtered out by condition resolver.
+Stage-5 is filtered out by condition resolver.
+Moving data to directory hdfs://namenode:8020/user/hive/warehouse/hi..
+Loading data to table hive_db.parking_vio_2017_orc
+MapReduce Jobs Launched:
+Stage-Stage-1:  HDFS Read: 35083110397 HDFS Write: 510857609 SUCCESS
+Total MapReduce CPU Time Spent: 0 msec
+OK
+parking_vio_2017.summons_no     parking_vio_2017.plate_id       parking_vio_2017.registration_state     parking_vio_2017.plate_type     parking_vio_2017.issue_date     parking_vio_2017.violation_code     parking_vio_2017.vehicle_body_type      parking_vio_2017.vehicle_make   parking_vio_2017.issuing_agency parking_vio_2017.street_code_1  parking_vio_2017.street_code_2      parking_vio_2017.street_code_3  parking_vio_2017.vehicle_exp_date       parking_vio_2017.violation_location     parking_vio_2017.violation_precinct parking_vio_2017.issuer_precinct        parking_vio_2017.issuer_code    parking_vio_2017.issuer_command parking_vio_2017.issuer_squad   parking_vio_2017.violation_time     parking_vio_2017.time_first_observed    parking_vio_2017.violation_county       parking_vio_2017.violation_in_front_of_or_opp   parking_vio_2017.house_no       parking_vio_2017.street_no  parking_vio_2017.intersection_street    parking_vio_2017.date_first_observed    parking_vio_2017.law_section    parking_vio_2017.sub_division   parking_vio_2017.violation_legal_code       parking_vio_2017.days_parking_in_effect parking_vio_2017.from_hours_in_effect   parking_vio_2017.to_hours_in_effect     parking_vio_2017.vehicle_color      parking_vio_2017.unregistered_vehicle   parking_vio_2017.vehicle_year   parking_vio_2017.meter_no       parking_vio_2017.feet_from_curb parking_vio_2017.violation_post_code        parking_vio_2017.violation_description  parking_vio_2017.no_standing_or_stopping_violation      parking_vio_2017.hydrant_violation      parking_vio_2017.double_parking_violation
+Time taken: 115.373 seconds
+hive>
 
 
+Its taking very less time to query now
 
-Note: Please ensure you make necessary optimizations to your queries like selecting the appropriate table format, 
-using partitioned/bucketed tables. Marks will be awarded for keeping the performance also in mind.
+hive> select count(*) from parking_vio_2017_orc ;
+OK
+_c0
+5431903
+Time taken: 0.248 seconds, Fetched: 1 row(s)
+hive>
+
+Now let’s create partitions and buckets
+Lets do dynamic partition on issue_date,violation_code and bucketing on summon_no
+
+hive> create table parking_vio_2017_orc_part
+    > (
+    > summons_no int,
+    > plate_id string,
+    > registration_state string,
+    > plate_type string,
+    > vehicle_body_type string,
+    > vehicle_make string,
+    > issuing_agency string,
+    > street_code_1 int,
+    > street_code_2 int,
+    > street_code_3 int,
+    > vehicle_exp_date int,
+    > violation_location int,
+    > violation_precinct int,
+    > issuer_precinct int,
+    > issuer_code int,
+    > issuer_command string,
+    > issuer_squad string,
+    > violation_time string,
+    > time_first_observed string,
+    > violation_county string,
+    > violation_in_front_of_or_opp string,
+    > house_no string,
+    > street_no string,
+    > intersection_street string,
+    > date_first_observed string,
+    > law_section int,
+    > sub_division string,
+    > violation_legal_code string,
+    > days_parking_in_effect string,
+    > from_hours_in_effect string,
+    > to_hours_in_effect string,
+    > vehicle_color string,
+    > unregistered_vehicle int,
+    > vehicle_year string,
+    > meter_no string,
+    > feet_from_curb string,
+    > violation_post_code string,
+    > violation_description string,
+    > no_standing_or_stopping_violation string,
+    > hydrant_violation string,
+    > double_parking_violation string
+    > )
+    > partitioned by (issue_date date,violation_code int)
+    > clustered by (summons_no)
+    > sorted by (summons_no)
+    > into 3 buckets;
+OK
+Time taken: 0.526 seconds
+hive>
+
+insert overwrite table parking_vio_2017_orc_part_buck partition (issue_date,violation_code) select summons_no,plate_id,
+registration_state,plate_type,vehicle_body_type,vehicle_make,issuing_agency,street_code_1,street_code_2,street_code_3,vehicle_exp_date,
+violation_location,violation_precinct,issuer_precinct,issuer_code,issuer_command,issuer_squad,violation_time,time_first_observed,
+violationcounty,violationinfrontof_or_opp,house_no,street_no,intersection_street,date_first_observed,law_section,sub_division,
+violation_legal_code,daysparkingin_effect,fromhoursin_effect,tohoursin_effect,vehicle_color,unregistered_vehicle,vehicle_year,
+meter_no,feet_from_curb,violation_post_code,violation_description,no_standing_or_stopping_violation,hydrant_violation,
+double_parking_violation,issue_date,violation_code from parking_vio_2017_orc 
