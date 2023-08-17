@@ -1,0 +1,107 @@
+This is a real time dataset of the ineuron technical consultant team. You have to perform hive analysis on this given dataset.
+
+Download Dataset 1 - https://drive.google.com/file/d/1WrG-9qv6atP-W3P_-gYln1hHyFKRKMHP/view
+->Done
+
+Download Dataset 2 - https://drive.google.com/file/d/1-JIPCZ34dyN6k9CqJa-Y8yxIGq6vTVXU/view
+->Done
+
+Note: both files are csv files. 
+
+
+1. Create a schema based on the given dataset
+hive> create table AgentLogingReport(
+    > SL_No int,
+    > Agent string,
+    > Date_ string,
+    > Login_Time string,
+    > Logout_Time string,
+    > Duration string
+    > );
+hive> create table AgentPerformance(
+    > SL_No int
+    > ,Date_ string
+    > ,Agent_Name string
+    > ,Total_Chats string
+    > ,Average_Response_Time string
+    > ,Average_Resolution_Time string
+    > ,Average_Rating string
+    > ,Total_Feedback string
+    > );
+
+
+2. Dump the data inside the hdfs in the given schema location.
+hive> LOAD DATA INPATH '/path/to/AgentPerformance.csv' INTO TABLE AgentPerformance;
+hive> LOAD DATA INPATH '/path/to/AgentLogingReport.csv' INTO TABLE AgentLogingReport;
+
+
+3. List of all agents names. 
+SELECT DISTINCT agent_name FROM AgentLogingReport;
+
+4. Find out agent average rating.
+SELECT agent_name, AVG(Average_Rating) AS average_rating
+FROM AgentPerformance
+GROUP BY agent_name;
+
+5. Total working days for each agents 
+SELECT agent_name, COUNT(Date_) AS total_working_days
+FROM AgentPerformance
+GROUP BY agent_name;
+
+
+6. Total query that each agent have taken 
+SELECT agent_name, Count(Total_Feedback) AS Complete_Feedback
+FROM AgentPerformance
+GROUP BY agent_name;
+
+7. Total Feedback that each agent have received 
+SELECT agent_name, COUNT(Total_Feedback) AS total_Total_Feedback
+FROM AgentPerformance
+GROUP BY agent_name;
+
+
+8. Agent name who have average rating between 3.5 to 4 
+SELECT agent_name, AVG(Average_Rating) AS average_rating
+FROM AgentPerformance
+GROUP BY agent_name
+HAVING average_rating >= 3.5 AND average_rating <= 4.0;
+
+9. Agent name who have rating less than 3.5 
+SELECT agent_name, AVG(average_rating) AS average_rating
+FROM AgentPerformance
+GROUP BY agent_name
+HAVING average_rating < 3.5;
+
+10. Agent name who have rating more than 4.5 
+SELECT agent_name, AVG(average_rating) AS average_rating
+FROM AgentPerformance
+GROUP BY agent_name
+HAVING average_rating > 4.5;
+
+11. How many feedback agents have received more than 4.5 average
+SELECT COUNT(*) AS feedback_count
+FROM AgentPerformance
+WHERE rating > 4.5;
+
+14. Find the number of chat on which they have received a feedback 
+SELECT agent_name, COUNT(*) AS chat_feedback_count
+FROM AgentPerformance
+WHERE Total_Feedback > 0
+GROUP BY agent_name;
+
+16. Perform inner join, left join and right join based on the agent column and after joining the table export that data into your local system.
+INSERT OVERWRITE LOCAL DIRECTORY 'inner_join_result'
+SELECT *
+FROM AgentPerformance c
+INNER JOIN AgentLogingReport o
+ON c.SL_No = o.SL_No;
+
+
+17. Perform partitioning on top of the agent column and then on top of that perform bucketing for each partitioning.
+-- Add partitioning
+ALTER TABLE consultant_data
+PARTITIONED BY (agent_name STRING);
+
+-- Add bucketing
+ALTER TABLE consultant_data
+CLUSTERED BY (agent_name) INTO 6 BUCKETS;
